@@ -171,7 +171,7 @@ input, select {
 }
 
 /* ==========================================================
-   TAMAÑO A4 REAL Y ESTRICTO (210mm x 297mm) SIN ESTIRAMIENTOS
+   TAMAÑO A4 ESTRICTO Y FIJO (210mm x 297mm) REAL
    ========================================================== */
 .page-a4 { 
     width: 210mm; 
@@ -186,8 +186,8 @@ input, select {
     font-size: 10px; 
     color: #1e293b;
     box-sizing: border-box;
-    position: relative; /* Clave para anclar elementos absolutos abajo */
-    overflow: hidden;   /* Evita que se deforme o crezca de tamaño */
+    position: relative; /* Contenedor de referencia para fijar el pie abajo */
+    overflow: hidden;   /* Impide que crezca o se deforme al escribir */
 }
 
 .header { 
@@ -285,15 +285,18 @@ tr {
     page-break-inside: avoid; 
 }
 
-/* BLOQUE INFERIOR ABSOLUTO FIJO AL PIE DE LA HOJA A4 */
+/* ==========================================================
+   BLOQUE INFERIOR FIJO EN EL PIE DEL A4 (NO SE MUEVE JAMÁS)
+   ========================================================== */
 .footer-block { 
     position: absolute;
-    bottom: 10mm; /* Deja exactamente 10mm de margen desde el borde inferior del A4 */
+    bottom: 10mm; /* Distancia exacta fija desde el borde inferior de la hoja A4 */
     left: 10mm;
     right: 10mm;
-    width: auto;
+    width: calc(210mm - 20mm);
+    background: white; /* Blanco opaco para que las líneas de la tabla pasen por detrás sin molestar */
+    padding-top: 4px;
     page-break-inside: avoid; 
-    background: white; /* Asegura que tape cualquier línea de tabla por debajo si se solapara */
 }
 
 .totals-container { 
