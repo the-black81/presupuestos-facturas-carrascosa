@@ -12,10 +12,266 @@
 </head>
 <body>
 
-    <!-- Aquí va todo tu contenido HTML de paneles y hoja A4 -->
+<div class="app-container">
+    <!-- PANEL IZQUIERDO DE CONFIGURACIÓN -->
+    <div class="panel-control">
+        <h2>Panel de Configuración</h2>
 
-    <!-- Carga de Scripts JS -->
-    <script src="js/backup-historial.js"></script>
-    <script src="js/app.js"></script>
+        <!-- BÚSQUEDA Y HISTORIAL -->
+        <h3>📚 Memoria e Historial</h3>
+        <div class="form-group">
+            <label>Cargar Documento Emitido Anteriormente</label>
+            <select id="selectHistorial" onchange="cargarDocumentoDesdeHistorial()">
+                <option value="">-- Seleccionar de la Memoria --</option>
+            </select>
+        </div>
+        <div class="row">
+            <button class="btn btn-gray" style="flex:1;" onclick="guardarEnHistorial(true)">💾 Guardar en Memoria</button>
+            <button class="btn btn-red" style="flex:1;" onclick="eliminarDocumentoActualDelHistorial()">🗑️ Borrar de Memoria</button>
+        </div>
+
+        <!-- OPCIONES DE BACKUP OCULTAS EN PLEGAR/DESPLEGAR -->
+        <details style="margin-top: 12px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <summary>💾 Copia de Seguridad (Backup)</summary>
+            <button class="btn btn-orange" onclick="descargarCopiaSeguridad()">📥 Descargar Backup con Fecha Actual</button>
+            <div class="form-group" style="margin-top:6px;">
+                <label>Restaurar Copia de Seguridad (.json)</label>
+                <input type="file" id="inputBackup" accept=".json" onchange="restaurarCopiaSeguridad(event)">
+            </div>
+        </details>
+
+        <h3>Numeración del Documento</h3>
+        <div class="row">
+            <div class="form-group" style="flex:1;">
+                <label>Tipo Documento</label>
+                <select id="tipoDoc" onchange="cambiarTipoDocUI()">
+                    <option value="PRESUPUESTO">Presupuesto</option>
+                    <option value="FACTURA">Factura</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>Nº Documento (Escribe ej: 2 o 500)</label>
+                <input type="text" id="numDoc" value="" oninput="detectarNumeroManualYCargar()">
+            </div>
+        </div>
+
+        <button class="btn" onclick="crearNuevoDocumentoCorrelativo()">➕ Nuevo Documento Siguiente</button>
+
+        <!-- BOTÓN ÚNICO DINÁMICO -->
+        <button id="btnToggleDoc" class="btn btn-toggle" onclick="alternarTipoDocumento()">🔄 Cambiar a FACTURA</button>
+
+        <button class="btn btn-red" onclick="resetearContadoresYBorrarTodo()">⚠️ Resetear Completo (Descarga Backup Automático)</button>
+
+        <div class="form-group" style="margin-top:12px;">
+            <label>Subir Nuevo Logo al Banco de Logos</label>
+            <input type="file" id="inputLogo" accept="image/*" onchange="guardarNuevoLogo(event)">
+        </div>
+        <div class="form-group">
+            <label>Seleccionar Logo de la Galería</label>
+            <select id="selectLogo" onchange="seleccionarLogoGuardado()">
+                <option value="">- Sin Logo / Texto -</option>
+            </select>
+        </div>
+
+        <details>
+            <summary>✏️ Editar Datos de la Empresa</summary>
+            <div style="background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 10px;">
+                <div class="form-group">
+                    <label>Título Comercial (Fallback si no hay Logo)</label>
+                    <input type="text" id="empTituloComercial" value="REFORMAS INTEGRALES CARRASCOSA" oninput="actualizar()">
+                </div>
+                <div class="form-group">
+                    <label>Nombre Fiscal / Empresa</label>
+                    <input type="text" id="empNombre" value="CARRASCOSA ARAUJO ALEJANDRO" oninput="actualizar()">
+                </div>
+                <div class="row">
+                    <div class="form-group" style="flex:1;">
+                        <label>CIF/NIF</label>
+                        <input type="text" id="empNif" value="48363668G" oninput="actualizar()">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Teléfono</label>
+                        <input type="text" id="empTel" value="622 356 504" oninput="actualizar()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dirección Empresa</label>
+                    <input type="text" id="empDir" value="Avenida Denia 88 | 03016 Alicante" oninput="actualizar()">
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="text" id="empEmail" value="suministroscarrascosa@gmail.com" oninput="actualizar()">
+                </div>
+                <div class="form-group">
+                    <label>Titular de la Cuenta / Banco</label>
+                    <input type="text" id="empTitularIban" value="CARRASCOSA ARAUJO ALEJANDRO" oninput="actualizar()">
+                </div>
+                <div class="form-group">
+                    <label>Número de IBAN</label>
+                    <input type="text" id="empIban" value="ES40 2100 2158 6402 0085 2354" oninput="actualizar()">
+                </div>
+            </div>
+        </details>
+
+        <div class="row">
+            <div class="form-group" style="flex:1;">
+                <label>Fecha</label>
+                <input type="text" id="fechaDoc" value="" oninput="actualizar()">
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>Validez del documento</label>
+                <input type="text" id="validezDoc" value="30 Días" oninput="actualizar()">
+            </div>
+        </div>
+
+        <h3>Datos del Cliente</h3>
+        <div class="form-group">
+            <label>Cargar Cliente Guardado</label>
+            <select id="selectCliente" onchange="cargarClienteSeleccionado()">
+                <option value="">-- Nuevo / Limpiar Cliente --</option>
+            </select>
+        </div>
+        <div class="form-group"><input type="text" id="cliNombre" value="" placeholder="Nombre / Empresa" oninput="actualizar()"></div>
+        <div class="form-group"><input type="text" id="cliDir" value="" placeholder="Dirección Cliente" oninput="actualizar()"></div>
+        <div class="row">
+            <div class="form-group" style="flex:1;"><input type="text" id="cliTel" value="" placeholder="Teléfono" oninput="actualizar()"></div>
+            <div class="form-group" style="flex:1;"><input type="text" id="cliNif" value="" placeholder="CIF/NIF" oninput="actualizar()"></div>
+        </div>
+        <div class="form-group"><input type="text" id="cliEmail" value="" placeholder="Correo Electrónico" oninput="actualizar()"></div>
+        <button class="btn" onclick="guardarClienteActual()">💾 Guardar / Actualizar Cliente en Memoria</button>
+
+        <h3>Proyecto / Ubicación</h3>
+        <div class="form-group">
+            <input type="text" id="txtProyecto" value="" placeholder="Ej: ASEO, COMEDOR, REFORMA GENERAL" oninput="actualizar()">
+        </div>
+
+        <h3>Trabajos y Unidades</h3>
+        <div id="itemsContainer"></div>
+        <button class="btn" onclick="agregarItem()">+ Añadir Línea de Trabajo</button>
+
+        <h3>Opciones de Impuestos y Visibilidad</h3>
+        <div class="form-group">
+            <label>IVA Aplicable</label>
+            <select id="tipoIva" onchange="actualizar()">
+                <option value="10">IVA Reducido (10%)</option>
+                <option value="21">IVA General (21%)</option>
+                <option value="0">Sin IVA (0%)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Texto Nota del Concepto Bancario (Editable)</label>
+            <input type="text" id="txtConceptoBancario" value="(Indicar dirección de la obra en el concepto de la transferencia)" oninput="actualizar()">
+        </div>
+
+        <label class="checkbox-group">
+            <input type="checkbox" id="chkManoObra" checked onchange="actualizar()">
+            Mostrar texto rojo "Mano de obra y desplazamiento incluido"
+        </label>
+
+        <label class="checkbox-group">
+            <input type="checkbox" id="chkFormaPago" checked onchange="actualizar()">
+            Mostrar IBAN y Datos Bancarios
+        </label>
+
+        <button class="btn btn-green" onclick="descargarPDF()">📄 DESCARGAR PDF</button>
+        <button class="btn btn-blue" onclick="descargarJPG()">🖼️ DESCARGAR JPG</button>
+    </div>
+
+    <!-- VISTA PREVIA HOJA A4 -->
+    <div class="preview-container">
+        <div class="page-a4" id="hojaA4">
+            <div>
+                <div class="header">
+                    <div>
+                        <img id="imgLogo" class="logo-img" src="" alt="Logo Carrascosa" style="display:none;">
+                        <div id="textLogoFallback" style="font-weight:bold; font-size:14px; color:#1b365d; margin-bottom:4px; line-height: 1.1;">
+                            REFORMAS INTEGRALES<br><span style="font-size:16px;">CARRASCOSA</span>
+                        </div>
+                        <div class="company-info">
+                            <div class="company-name" id="lblEmpNombre">CARRASCOSA ARAUJO ALEJANDRO</div>
+                            CIF/NIF: <span id="lblEmpNif">48363668G</span><br>
+                            <span id="lblEmpDir">Avenida Denia 88 | 03016 Alicante</span><br>
+                            Teléfono: <span id="lblEmpTel">622 356 504</span><br>
+                            e-mail: <span id="lblEmpEmail">suministroscarrascosa@gmail.com</span>
+                        </div>
+                    </div>
+
+                    <div class="client-box">
+                        <div style="font-weight:bold; color:#1b365d; margin-bottom:3px;">CLIENTE:</div>
+                        <strong>Nombre:</strong> <span id="lblCliNombre">-</span><br>
+                        <strong>Dirección:</strong> <span id="lblCliDir">-</span><br>
+                        <strong>Teléfono:</strong> <span id="lblCliTel">-</span><br>
+                        <strong>Correo:</strong> <span id="lblCliEmail">-</span><br>
+                        <strong>CIF/NIF:</strong> <span id="lblCliNif">-</span>
+                    </div>
+                </div>
+
+                <div class="doc-bar">
+                    <span id="lblTituloDoc">PRESUPUESTO Nº: PRES-2026-001</span>
+                    <span id="lblFechaDoc">FECHA: 19/09/2026</span>
+                </div>
+
+                <div class="proyecto-title" id="boxProyectoDisplay" style="display:none;">
+                    PROYECTO: <span id="lblProyecto"></span>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 12%;">CANT.</th>
+                            <th style="width: 52%;">CONCEPTO / TRABAJOS A REALIZAR</th>
+                            <th style="width: 18%; text-align: right;">P. UNIT.</th>
+                            <th style="width: 18%; text-align: right;">IMPORTE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody"></tbody>
+                </table>
+            </div>
+
+            <div class="footer-block">
+                <div class="totals-container">
+                    <div class="leyenda" id="boxManoObra">
+                        Mano de obra y desplazamiento incluido
+                    </div>
+
+                    <div class="totals-box">
+                        <div class="totals-row"><span>BASE IMPONIBLE:</span> <span id="lblBase">0,00 €</span></div>
+                        <div class="totals-row"><span>IVA (<span id="lblPorcentajeIva">10</span>%):</span> <span id="lblCuotaIva">0,00 €</span></div>
+                        <div class="totals-row totals-total"><span>TOTAL GENERAL:</span> <span id="lblTotalGeneral">0,00 €</span></div>
+                    </div>
+                </div>
+
+                <div class="conditions-box">
+                    <strong style="color:#1b365d;">FORMA DE PAGO:</strong><br>
+                    • Se abona el 50% (<span id="lblAdelanto">0,00 €</span>) para formalizar el pedido.<br>
+                    • Se realizará un 2º pago del 25% (<span id="lblPago2">0,00 €</span>) a mitad de obra.<br>
+                    • Pago final restante del 25% (<span id="lblPagoFinal">0,00 €</span>) a la finalización de los trabajos.<br>
+                    • Validez del documento: <span id="lblValidezDoc">30 Días</span>.<br>
+                    
+                    <div class="bank-details" id="boxIbanDetails">
+                        Titular: <span id="lblTitularIban">CARRASCOSA ARAUJO ALEJANDRO</span> &nbsp;|&nbsp; 
+                        IBAN: <span id="lblIban">ES40 2100 2158 6402 0085 2354</span><br>
+                        <span style="font-weight: normal; color: #475569; font-size: 8px;" id="lblConceptoNota">(Indicar dirección de la obra en el concepto de la transferencia)</span>
+                    </div>
+                </div>
+
+                <div class="signatures">
+                    <div class="sig-box">
+                        <strong>Firma Empresa:</strong><br>
+                        <span id="lblEmpNombreFirma">CARRASCOSA ARAUJO ALEJANDRO</span>
+                    </div>
+                    <div class="sig-box">
+                        <strong>Conforme Cliente (Nombre, DNI y Firma):</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Carga de Scripts JS -->
+<script src="js/backup-historial.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
