@@ -170,7 +170,7 @@ input, select {
     cursor: pointer; 
 }
 
-/* FORMATO Y PROPORCIÓN A4 ESTABLE SIN ESTIRAMIENTOS */
+/* FORMATO Y PROPORCIÓN A4 ESTABLE CON FOOTER ANCLADO ABAJO */
 .page-a4 { 
     width: 210mm; 
     min-height: 297mm;
@@ -179,7 +179,7 @@ input, select {
     box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between; /* CLAVE: Empuja los bloques de contenido para ocupar exactamente el alto del A4 sin estirarse mal */
     font-size: 10px; 
     color: #1e293b;
     box-sizing: border-box;
@@ -285,7 +285,7 @@ tr {
 .footer-block { 
     width: 100%; 
     margin-top: auto; 
-    padding-top: 15px;
+    padding-top: 10px;
     page-break-inside: avoid; 
 }
 
