@@ -7,8 +7,9 @@ let galeriaLogos = JSON.parse(localStorage.getItem("carrascosa_logos") || "[]");
 let clientesGuardados = JSON.parse(localStorage.getItem("carrascosa_clientes") || "[]");
 let historialDocumentos = JSON.parse(localStorage.getItem("carrascosa_historial") || "[]");
 
-let numPresupuesto = parseInt(localStorage.getItem("carrascosa_seq_pres") || "1", 10);
-let numFactura = parseInt(localStorage.getItem("carrascosa_seq_fact") || "1", 10);
+// Forzamos un mínimo de 1 para evitar que empiece en 000
+let numPresupuesto = Math.max(1, parseInt(localStorage.getItem("carrascosa_seq_pres") || "1", 10));
+let numFactura = Math.max(1, parseInt(localStorage.getItem("carrascosa_seq_fact") || "1", 10));
 
 function obtenerFechaHoyISO() {
     const hoy = new Date();
@@ -29,7 +30,7 @@ function formatearFechaEspanol(fechaISO) {
 
 function formatearNumero(prefijo, numero) {
     const anio = new Date().getFullYear();
-    return `${prefijo}-${anio}-${String(numero).padStart(3, '0')}`;
+    return `${prefijo}-${anio}-${String(Math.max(1, numero)).padStart(3, '0')}`;
 }
 
 function inicializarNumeracion() {
@@ -38,7 +39,7 @@ function inicializarNumeracion() {
     const tipo = tipoElem.value;
     
     const numDocElem = document.getElementById("numDoc");
-    if (numDocElem && !numDocElem.value) {
+    if (numDocElem && (!numDocElem.value || numDocElem.value.includes("000"))) {
         if (tipo === "PRESUPUESTO") {
             numDocElem.value = formatearNumero("PRES", numPresupuesto);
         } else {
@@ -182,9 +183,7 @@ function cargarDocumentoDesdeHistorial() {
     }
 }
 
-// ==========================================================
-// CARGA UNIVERSAL (JSON / PDF) PARA MODIFICAR
-// ==========================================================
+// CARGA UNIVERSAL (JSON / PDF)
 function cargarDocumentoUniversal(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -246,7 +245,7 @@ async function leerTextoPDFYModificar(file) {
             }
         }
 
-        alert("PDF leído correctamente. El número de documento se ha detectado, pero no estaba en la memoria local del navegador.");
+        alert("PDF leído correctamente. Número detectado, pero no estaba en la memoria local.");
         actualizar();
 
     } catch (error) {
@@ -327,8 +326,8 @@ function restaurarCopiaSeguridad(event) {
                 historialDocumentos = data.historial;
                 clientesGuardados = data.clientes;
                 galeriaLogos = data.logos || [];
-                numPresupuesto = data.numPresupuesto || 1;
-                numFactura = data.numFactura || 1;
+                numPresupuesto = Math.max(1, data.numPresupuesto || 1);
+                numFactura = Math.max(1, data.numFactura || 1);
 
                 localStorage.setItem("carrascosa_historial", JSON.stringify(historialDocumentos));
                 localStorage.setItem("carrascosa_clientes", JSON.stringify(clientesGuardados));
