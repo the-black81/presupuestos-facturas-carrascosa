@@ -170,11 +170,10 @@ input, select {
     cursor: pointer; 
 }
 
-/* FORMATO Y PROPORCIÓN A4 CORREGIDA */
+/* FORMATO Y PROPORCIÓN A4 ANTI-CORTE */
 .page-a4 { 
     width: 210mm; 
     min-height: 297mm;
-    height: 297mm;
     background: white; 
     padding: 10mm; 
     box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
@@ -285,8 +284,7 @@ tr {
 
 .footer-block { 
     width: 100%; 
-    margin-top: auto; 
-    padding-top: 10px;
+    margin-top: 25px; /* Espacio natural fluido sin forzar corte */
     page-break-inside: avoid; 
 }
 
