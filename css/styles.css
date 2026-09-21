@@ -1,5 +1,5 @@
 /* ============================================================
-   styles.css - Estilos Globales, Panel de Control y Hoja A4
+    styles.css - Estilos Globales, Panel de Control y Hoja A4
    ============================================================ */
 
 * { 
@@ -363,16 +363,17 @@ tr {
 .signatures { 
     display: flex; 
     justify-content: space-between; 
+    gap: 15px;
     margin-top: 6px; 
     font-size: 8.5px; 
     color: #334155; 
 }
 
 .sig-box { 
-    width: 48%; 
+    flex: 1;
     background: #fafafa; 
-    padding: 4px; 
-    height: 35px; 
+    padding: 6px 8px; 
+    min-height: 75px; /* <--- Altura ampliada para mayor comodidad de firma */
     border-radius: 4px; 
     border: 1px solid #e2e8f0; 
 }
