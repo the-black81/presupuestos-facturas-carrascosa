@@ -10,12 +10,21 @@ let historialDocumentos = JSON.parse(localStorage.getItem("carrascosa_historial"
 let numPresupuesto = parseInt(localStorage.getItem("carrascosa_seq_pres") || "1");
 let numFactura = parseInt(localStorage.getItem("carrascosa_seq_fact") || "1");
 
-function obtenerFechaHoy() {
+function obtenerFechaHoyISO() {
     const hoy = new Date();
     const dia = String(hoy.getDate()).padStart(2, '0');
     const mes = String(hoy.getMonth() + 1).padStart(2, '0');
     const anio = hoy.getFullYear();
-    return `${dia}/${mes}/${anio}`;
+    return `${anio}-${mes}-${dia}`;
+}
+
+function formatearFechaEspanol(fechaISO) {
+    if (!fechaISO) return "";
+    const partes = fechaISO.split("-");
+    if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+    return fechaISO;
 }
 
 function formatearNumero(prefijo, numero) {
@@ -30,8 +39,10 @@ function inicializarNumeracion() {
     } else {
         document.getElementById("numDoc").value = formatearNumero("FACT", numFactura);
     }
-    if (!document.getElementById("fechaDoc").value) {
-        document.getElementById("fechaDoc").value = obtenerFechaHoy();
+    
+    const inputFecha = document.getElementById("fechaDoc");
+    if (inputFecha && !inputFecha.value) {
+        inputFecha.value = obtenerFechaHoyISO();
     }
     actualizarBotonToggle();
     actualizar();
@@ -54,6 +65,7 @@ function alternarTipoDocumento() {
 function actualizarBotonToggle() {
     const tipo = document.getElementById("tipoDoc").value;
     const btn = document.getElementById("btnToggleDoc");
+    if (!btn) return;
     
     if (tipo === "PRESUPUESTO") {
         btn.innerText = "🔄 Cambiar a FACTURA";
@@ -132,7 +144,8 @@ function cargarDesplegableHistorial() {
     if (!select) return;
     select.innerHTML = '<option value="">-- Seleccionar de la Memoria --</option>';
     historialDocumentos.forEach((doc, index) => {
-        select.innerHTML += `<option value="${index}">${doc.numDoc} - ${doc.cliNombre || 'Sin Cliente'} (${doc.fechaDoc})</option>`;
+        const fechaTexto = formatearFechaEspanol(doc.fechaDoc) || doc.fechaDoc;
+        select.innerHTML += `<option value="${index}">${doc.numDoc} - ${doc.cliNombre || 'Sin Cliente'} (${fechaTexto})</option>`;
     });
 }
 
@@ -146,7 +159,7 @@ function cargarDocumentoDesdeHistorial() {
 function cargarDatosDesdeObjeto(doc) {
     document.getElementById("tipoDoc").value = doc.tipoDoc || "PRESUPUESTO";
     document.getElementById("numDoc").value = doc.numDoc;
-    document.getElementById("fechaDoc").value = doc.fechaDoc || obtenerFechaHoy();
+    document.getElementById("fechaDoc").value = doc.fechaDoc || obtenerFechaHoyISO();
     document.getElementById("validezDoc").value = doc.validezDoc || "30 Días";
     document.getElementById("cliNombre").value = doc.cliNombre || "";
     document.getElementById("cliDir").value = doc.cliDir || "";
@@ -181,7 +194,7 @@ function eliminarDocumentoActualDelHistorial() {
 }
 
 function descargarCopiaSeguridad() {
-    const fechaActual = obtenerFechaHoy().replace(/\//g, '-');
+    const fechaActual = formatearFechaEspanol(obtenerFechaHoyISO()).replace(/\//g, '-');
     const backupData = {
         fechaBackup: fechaActual,
         numPresupuesto: numPresupuesto,
@@ -246,7 +259,7 @@ function crearNuevoDocumentoCorrelativo() {
         document.getElementById("numDoc").value = formatearNumero("FACT", numFactura);
     }
     limpiarFormularioCompleto();
-    document.getElementById("fechaDoc").value = obtenerFechaHoy();
+    document.getElementById("fechaDoc").value = obtenerFechaHoyISO();
     actualizar();
 }
 
@@ -429,10 +442,12 @@ function actualizar() {
 
     const tipoDoc = document.getElementById("tipoDoc").value;
     const numDoc = document.getElementById("numDoc").value;
-    const fecha = document.getElementById("fechaDoc").value || obtenerFechaHoy();
+    
+    const fechaInput = document.getElementById("fechaDoc").value;
+    const fechaFormateada = formatearFechaEspanol(fechaInput) || formatearFechaEspanol(obtenerFechaHoyISO());
 
     document.getElementById("lblTituloDoc").innerText = `${tipoDoc} Nº: ${numDoc}`;
-    document.getElementById("lblFechaDoc").innerText = `FECHA: ${fecha}`;
+    document.getElementById("lblFechaDoc").innerText = `FECHA: ${fechaFormateada}`;
     document.getElementById("lblValidezDoc").innerText = document.getElementById("validezDoc").value || "30 Días";
     document.getElementById("lblCliNombre").innerText = document.getElementById("cliNombre").value || "-";
     document.getElementById("lblCliDir").innerText = document.getElementById("cliDir").value || "-";
