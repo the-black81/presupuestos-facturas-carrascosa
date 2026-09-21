@@ -1,6 +1,254 @@
 /* ============================================================
-   app.js - Lógica Principal, Clientes, Logos, Partidas y Exportación
+   app.js - Lógica Principal, Clientes, Logos, Numeración y Exportación
    ============================================================ */
+
+let items = [{ cant: "1", unid: "", desc: "", precio: 0.00 }];
+let galeriaLogos = JSON.parse(localStorage.getItem("carrascosa_logos") || "[]");
+let clientesGuardados = JSON.parse(localStorage.getItem("carrascosa_clientes") || "[]");
+let historialDocumentos = JSON.parse(localStorage.getItem("carrascosa_historial") || "[]");
+
+let numPresupuesto = parseInt(localStorage.getItem("carrascosa_seq_pres") || "1");
+let numFactura = parseInt(localStorage.getItem("carrascosa_seq_fact") || "1");
+
+function obtenerFechaHoy() {
+    const hoy = new Date();
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const anio = hoy.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+}
+
+function formatearNumero(prefijo, numero) {
+    const anio = new Date().getFullYear();
+    return `${prefijo}-${anio}-${String(numero).padStart(3, '0')}`;
+}
+
+function inicializarNumeracion() {
+    const tipo = document.getElementById("tipoDoc").value;
+    if (tipo === "PRESUPUESTO") {
+        document.getElementById("numDoc").value = formatearNumero("PRES", numPresupuesto);
+    } else {
+        document.getElementById("numDoc").value = formatearNumero("FACT", numFactura);
+    }
+    if (!document.getElementById("fechaDoc").value) {
+        document.getElementById("fechaDoc").value = obtenerFechaHoy();
+    }
+    actualizarBotonToggle();
+    actualizar();
+}
+
+function cambiarTipoDocUI() {
+    inicializarNumeracion();
+}
+
+function alternarTipoDocumento() {
+    const selectTipo = document.getElementById("tipoDoc");
+    if (selectTipo.value === "PRESUPUESTO") {
+        selectTipo.value = "FACTURA";
+    } else {
+        selectTipo.value = "PRESUPUESTO";
+    }
+    inicializarNumeracion();
+}
+
+function actualizarBotonToggle() {
+    const tipo = document.getElementById("tipoDoc").value;
+    const btn = document.getElementById("btnToggleDoc");
+    
+    if (tipo === "PRESUPUESTO") {
+        btn.innerText = "🔄 Cambiar a FACTURA";
+        btn.style.background = "#7c3aed";
+    } else {
+        btn.innerText = "🔄 Cambiar a PRESUPUESTO";
+        btn.style.background = "#0d9488";
+    }
+}
+
+function detectarNumeroManualYCargar() {
+    const valorInput = document.getElementById("numDoc").value.trim().toUpperCase();
+    if (!valorInput) return;
+
+    const coincidencia = historialDocumentos.find(doc => {
+        if (doc.numDoc.toUpperCase() === valorInput) return true;
+        const partes = doc.numDoc.split("-");
+        if (partes.length > 0 && parseInt(partes[partes.length - 1]) === parseInt(valorInput)) {
+            return true;
+        }
+        return false;
+    });
+
+    if (coincidencia) {
+        cargarDatosDesdeObjeto(coincidencia);
+    } else {
+        const coincidenciasNum = valorInput.match(/\d+/g);
+        if (coincidenciasNum && coincidenciasNum.length > 0) {
+            const ultimoNum = parseInt(coincidenciasNum[coincidenciasNum.length - 1]);
+            const tipo = document.getElementById("tipoDoc").value;
+            if (tipo === "PRESUPUESTO") {
+                numPresupuesto = ultimoNum;
+                localStorage.setItem("carrascosa_seq_pres", numPresupuesto);
+            } else {
+                numFactura = ultimoNum;
+                localStorage.setItem("carrascosa_seq_fact", numFactura);
+            }
+        }
+        actualizar();
+    }
+}
+
+function guardarEnHistorial(silencioso = false) {
+    const docActual = {
+        numDoc: document.getElementById("numDoc").value,
+        tipoDoc: document.getElementById("tipoDoc").value,
+        fechaDoc: document.getElementById("fechaDoc").value,
+        validezDoc: document.getElementById("validezDoc").value,
+        cliNombre: document.getElementById("cliNombre").value,
+        cliDir: document.getElementById("cliDir").value,
+        cliTel: document.getElementById("cliTel").value,
+        cliNif: document.getElementById("cliNif").value,
+        cliEmail: document.getElementById("cliEmail").value,
+        txtProyecto: document.getElementById("txtProyecto").value,
+        items: JSON.parse(JSON.stringify(items)),
+        tipoIva: document.getElementById("tipoIva").value,
+        txtConceptoBancario: document.getElementById("txtConceptoBancario").value,
+        chkManoObra: document.getElementById("chkManoObra").checked,
+        chkFormaPago: document.getElementById("chkFormaPago").checked
+    };
+
+    const idx = historialDocumentos.findIndex(d => d.numDoc === docActual.numDoc);
+    if (idx >= 0) {
+        historialDocumentos[idx] = docActual;
+    } else {
+        historialDocumentos.push(docActual);
+    }
+
+    localStorage.setItem("carrascosa_historial", JSON.stringify(historialDocumentos));
+    cargarDesplegableHistorial();
+    if (silencioso) alert(`Documento ${docActual.numDoc} guardado en memoria con éxito.`);
+}
+
+function cargarDesplegableHistorial() {
+    const select = document.getElementById("selectHistorial");
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Seleccionar de la Memoria --</option>';
+    historialDocumentos.forEach((doc, index) => {
+        select.innerHTML += `<option value="${index}">${doc.numDoc} - ${doc.cliNombre || 'Sin Cliente'} (${doc.fechaDoc})</option>`;
+    });
+}
+
+function cargarDocumentoDesdeHistorial() {
+    const idx = document.getElementById("selectHistorial").value;
+    if (idx !== "") {
+        cargarDatosDesdeObjeto(historialDocumentos[idx]);
+    }
+}
+
+function cargarDatosDesdeObjeto(doc) {
+    document.getElementById("tipoDoc").value = doc.tipoDoc || "PRESUPUESTO";
+    document.getElementById("numDoc").value = doc.numDoc;
+    document.getElementById("fechaDoc").value = doc.fechaDoc || obtenerFechaHoy();
+    document.getElementById("validezDoc").value = doc.validezDoc || "30 Días";
+    document.getElementById("cliNombre").value = doc.cliNombre || "";
+    document.getElementById("cliDir").value = doc.cliDir || "";
+    document.getElementById("cliTel").value = doc.cliTel || "";
+    document.getElementById("cliNif").value = doc.cliNif || "";
+    document.getElementById("cliEmail").value = doc.cliEmail || "";
+    document.getElementById("txtProyecto").value = doc.txtProyecto || "";
+    items = doc.items && doc.items.length ? JSON.parse(JSON.stringify(doc.items)) : [{ cant: "1", unid: "", desc: "", precio: 0 }];
+    document.getElementById("tipoIva").value = doc.tipoIva || "10";
+    document.getElementById("txtConceptoBancario").value = doc.txtConceptoBancario || "(Indicar dirección de la obra en el concepto de la transferencia)";
+    document.getElementById("chkManoObra").checked = doc.chkManoObra !== undefined ? doc.chkManoObra : true;
+    document.getElementById("chkFormaPago").checked = doc.chkFormaPago !== undefined ? doc.chkFormaPago : true;
+
+    renderItems();
+    actualizarBotonToggle();
+    actualizar();
+}
+
+function eliminarDocumentoActualDelHistorial() {
+    const numDoc = document.getElementById("numDoc").value;
+    const idx = historialDocumentos.findIndex(d => d.numDoc === numDoc);
+    if (idx >= 0) {
+        if (confirm(`¿Seguro que deseas eliminar ${numDoc} de la memoria?`)) {
+            historialDocumentos.splice(idx, 1);
+            localStorage.setItem("carrascosa_historial", JSON.stringify(historialDocumentos));
+            cargarDesplegableHistorial();
+            alert(`Documento ${numDoc} eliminado.`);
+        }
+    } else {
+        alert("El documento actual no está guardado en el historial.");
+    }
+}
+
+function descargarCopiaSeguridad() {
+    const fechaActual = obtenerFechaHoy().replace(/\//g, '-');
+    const backupData = {
+        fechaBackup: fechaActual,
+        numPresupuesto: numPresupuesto,
+        numFactura: numFactura,
+        historial: historialDocumentos,
+        clientes: clientesGuardados,
+        logos: galeriaLogos
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `Backup_Carrascosa_${fechaActual}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+function restaurarCopiaSeguridad(event) {
+    const fileReader = new FileReader();
+    fileReader.onload = function() {
+        try {
+            const data = JSON.parse(fileReader.result);
+            if (data.historial && data.clientes) {
+                historialDocumentos = data.historial;
+                clientesGuardados = data.clientes;
+                galeriaLogos = data.logos || [];
+                numPresupuesto = data.numPresupuesto || 1;
+                numFactura = data.numFactura || 1;
+
+                localStorage.setItem("carrascosa_historial", JSON.stringify(historialDocumentos));
+                localStorage.setItem("carrascosa_clientes", JSON.stringify(clientesGuardados));
+                localStorage.setItem("carrascosa_logos", JSON.stringify(galeriaLogos));
+                localStorage.setItem("carrascosa_seq_pres", numPresupuesto);
+                localStorage.setItem("carrascosa_seq_fact", numFactura);
+
+                cargarDesplegableHistorial();
+                cargarDesplegableClientes();
+                cargarDesplegableLogos();
+                inicializarNumeracion();
+                alert("Copia de seguridad restaurada correctamente.");
+            } else {
+                alert("El archivo subido no es una copia de seguridad válida.");
+            }
+        } catch (e) {
+            alert("Error al procesar el archivo de copia de seguridad.");
+        }
+    };
+    fileReader.readAsText(event.target.files[0]);
+}
+
+function crearNuevoDocumentoCorrelativo() {
+    guardarEnHistorial(false);
+    const tipo = document.getElementById("tipoDoc").value;
+    if (tipo === "PRESUPUESTO") {
+        numPresupuesto++;
+        localStorage.setItem("carrascosa_seq_pres", numPresupuesto);
+        document.getElementById("numDoc").value = formatearNumero("PRES", numPresupuesto);
+    } else {
+        numFactura++;
+        localStorage.setItem("carrascosa_seq_fact", numFactura);
+        document.getElementById("numDoc").value = formatearNumero("FACT", numFactura);
+    }
+    limpiarFormularioCompleto();
+    document.getElementById("fechaDoc").value = obtenerFechaHoy();
+    actualizar();
+}
 
 function limpiarFormularioCompleto() {
     document.getElementById("selectCliente").value = "";
@@ -49,6 +297,7 @@ function guardarNuevoLogo(event) {
 
 function cargarDesplegableLogos() {
     const select = document.getElementById("selectLogo");
+    if (!select) return;
     select.innerHTML = '<option value="">- Sin Logo / Texto -</option>';
     galeriaLogos.forEach((logo, index) => {
         select.innerHTML += `<option value="${index}">${logo.nombre}</option>`;
@@ -100,6 +349,7 @@ function guardarClienteActual() {
 
 function cargarDesplegableClientes() {
     const select = document.getElementById("selectCliente");
+    if (!select) return;
     select.innerHTML = '<option value="">-- Nuevo / Limpiar Cliente --</option>';
     clientesGuardados.forEach((c, index) => {
         select.innerHTML += `<option value="${index}">${c.nombre}</option>`;
@@ -127,6 +377,7 @@ function cargarClienteSeleccionado() {
 
 function renderItems() {
     const container = document.getElementById("itemsContainer");
+    if (!container) return;
     container.innerHTML = "";
     items.forEach((item, index) => {
         container.innerHTML += `
@@ -226,7 +477,7 @@ function actualizar() {
             <tr>
                 <td>${item.cant}${unidadTexto}</td>
                 <td>${item.desc}</td>
-                <td style="text-align: right;">${totalFila.toFixed(2).replace('.', ',')} €</td>
+                <td style="text-align: right;">${item.precio.toFixed(2).replace('.', ',')} €</td>
                 <td style="text-align: right;">${totalFila.toFixed(2).replace('.', ',')} €</td>
             </tr>
         `;
@@ -253,9 +504,12 @@ function actualizar() {
 function descargarPDF() {
     guardarEnHistorial(false);
     const element = document.getElementById("hojaA4");
+    const numDoc = document.getElementById("numDoc").value || "Documento";
+    const nombreLimpio = numDoc.replace(/[^a-zA-Z0-9_-]/g, "_");
+
     const opt = {
         margin: 0,
-        filename: `${document.getElementById("numDoc").value}.pdf`,
+        filename: `${nombreLimpio}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -267,15 +521,27 @@ function descargarPDF() {
         if (totalPages > 1 && items.length <= 12) {
             pdf.deletePage(totalPages);
         }
-    }).save();
+        const blob = pdf.output('blob');
+        const fileBlob = new Blob([blob], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(fileBlob);
+        link.download = `${nombreLimpio}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(link.href), 100);
+    });
 }
 
 function descargarJPG() {
     guardarEnHistorial(false);
     const element = document.getElementById("hojaA4");
+    const numDoc = document.getElementById("numDoc").value || "Documento";
+    const nombreLimpio = numDoc.replace(/[^a-zA-Z0-9_-]/g, "_");
+
     html2canvas(element, { scale: 2, useCORS: true, scrollY: 0 }).then(canvas => {
         const link = document.createElement('a');
-        link.download = `${document.getElementById("numDoc").value}.jpg`;
+        link.download = `${nombreLimpio}.jpg`;
         link.href = canvas.toDataURL('image/jpeg', 0.98);
         link.click();
     });
