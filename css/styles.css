@@ -170,7 +170,7 @@ input, select {
     cursor: pointer; 
 }
 
-/* FORMATO Y PROPORCIÓN A4 ANTI-CORTE */
+/* FORMATO Y PROPORCIÓN A4 ESTABLE SIN ESTIRAMIENTOS */
 .page-a4 { 
     width: 210mm; 
     min-height: 297mm;
@@ -179,7 +179,7 @@ input, select {
     box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: flex-start; /* Evita que el contenido se estire artificialmente */
     font-size: 10px; 
     color: #1e293b;
     box-sizing: border-box;
@@ -284,7 +284,7 @@ tr {
 
 .footer-block { 
     width: 100%; 
-    margin-top: 25px; /* Espacio natural fluido sin forzar corte */
+    margin-top: 25px; /* Margen fluido natural para que las firmas no queden pegadas arriba */
     page-break-inside: avoid; 
 }
 
