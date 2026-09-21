@@ -9,6 +9,11 @@
     <!-- Librerías para exportar PDF e Imagen -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Librería PDF.js para leer documentos PDF por dentro -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
 </head>
 <body>
 
@@ -17,7 +22,7 @@
     <div class="panel-control">
         <h2>Panel de Configuración</h2>
 
-        <!-- DESPLEGABLE ÚNICO PARA MEMORIA, HISTORIAL, BACKUP Y RESET -->
+        <!-- DESPLEGABLE ÚNICO PARA MEMORIA, HISTORIAL, BACKUP Y CARGA UNIVERSAL -->
         <details style="margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
             <summary>💾 Memoria, Historial y Backup</summary>
             
@@ -35,6 +40,14 @@
 
                 <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 12px 0;">
 
+                <!-- CAMPO UNIVERSAL PARA SUBIR .JSON O .PDF -->
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label>📂 Subir Presupuesto / Factura (.json o .pdf) para Modificar</label>
+                    <input type="file" id="inputCargarJson" accept=".json, .pdf" onchange="cargarDocumentoUniversal(event)" style="font-size: 11px; padding: 4px; background: white; cursor: pointer;">
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 12px 0;">
+
                 <button class="btn btn-orange" onclick="descargarCopiaSeguridad()">📥 Descargar Backup con Fecha Actual</button>
                 <div class="form-group" style="margin-top:8px;">
                     <label>Restaurar Copia de Seguridad (.json)</label>
@@ -43,7 +56,7 @@
 
                 <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 12px 0;">
 
-                <!-- BOTÓN RED MOVIDO AQUÍ DENTRO -->
+                <!-- BOTÓN RESET -->
                 <button class="btn btn-red" onclick="resetearContadoresYBorrarTodo()">⚠️ Resetear Completo (Descarga Backup Automático)</button>
             </div>
         </details>
@@ -122,7 +135,7 @@
         <div class="row">
             <div class="form-group" style="flex:1;">
                 <label>Fecha</label>
-                <!-- CAMPO TIPO DATE PARA CALENDARIO NATI VO -->
+                <!-- CAMPO TIPO DATE PARA CALENDARIO NATIVO -->
                 <input type="date" id="fechaDoc" onchange="actualizar()">
             </div>
             <div class="form-group" style="flex:1;">
