@@ -170,20 +170,24 @@ input, select {
     cursor: pointer; 
 }
 
-/* FORMATO A4 NATURAL Y FLUIDO (SE ADAPTA AL AÑADIR LÍNEAS SIN ESTIRARSE MAL) */
+/* ==========================================================
+   TAMAÑO A4 REAL Y ESTRICTO (210mm x 297mm) SIN ESTIRAMIENTOS
+   ========================================================== */
 .page-a4 { 
     width: 210mm; 
-    min-height: 297mm; /* Permite crecer de forma natural si hay muchas líneas, manteniendo el tamaño mínimo de un folio A4 */
+    height: 297mm; 
+    min-width: 210mm;
+    min-height: 297mm;
+    max-width: 210mm;
+    max-height: 297mm;
     background: white; 
     padding: 10mm; 
     box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; 
     font-size: 10px; 
     color: #1e293b;
     box-sizing: border-box;
-    position: relative;
+    position: relative; /* Clave para anclar elementos absolutos abajo */
+    overflow: hidden;   /* Evita que se deforme o crezca de tamaño */
 }
 
 .header { 
@@ -275,19 +279,21 @@ td {
     font-size: 9px; 
     color: #334155; 
     word-wrap: break-word; 
-    page-break-inside: avoid; 
 }
 
 tr { 
     page-break-inside: avoid; 
 }
 
-/* BLOQUE INFERIOR CON MARGEN FLEXIBLE NATURAL */
+/* BLOQUE INFERIOR ABSOLUTO FIJO AL PIE DE LA HOJA A4 */
 .footer-block { 
-    width: 100%; 
-    margin-top: 20px; /* Margen superior natural para que baje ordenadamente sin estirarse de más */
-    padding-top: 5px;
+    position: absolute;
+    bottom: 10mm; /* Deja exactamente 10mm de margen desde el borde inferior del A4 */
+    left: 10mm;
+    right: 10mm;
+    width: auto;
     page-break-inside: avoid; 
+    background: white; /* Asegura que tape cualquier línea de tabla por debajo si se solapara */
 }
 
 .totals-container { 
