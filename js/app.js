@@ -554,7 +554,19 @@ function descargarJPG() {
     const numDoc = document.getElementById("numDoc").value || "Documento";
     const nombreLimpio = numDoc.replace(/[^a-zA-Z0-9_-]/g, "_");
 
-    html2canvas(element, { scale: 2, useCORS: true, scrollY: 0 }).then(canvas => {
+    // Calculamos el ancho exacto del elemento y forzamos la proporción A4 (1:1.414)
+    const width = element.offsetWidth;
+    const height = Math.round(width * 1.414);
+
+    html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        scrollY: 0,
+        width: width,
+        height: height,
+        windowWidth: width,
+        windowHeight: height
+    }).then(canvas => {
         const link = document.createElement('a');
         link.download = `${nombreLimpio}.jpg`;
         link.href = canvas.toDataURL('image/jpeg', 0.98);
