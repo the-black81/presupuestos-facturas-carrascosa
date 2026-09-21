@@ -38,7 +38,6 @@ function inicializarNumeracion() {
     const tipo = tipoElem.value;
     
     const numDocElem = document.getElementById("numDoc");
-    // Solo asignamos automático si el campo está vacío o viene de un reseteo
     if (numDocElem && !numDocElem.value) {
         if (tipo === "PRESUPUESTO") {
             numDocElem.value = formatearNumero("PRES", numPresupuesto);
@@ -60,7 +59,6 @@ function cambiarTipoDocUI() {
     if (!tipoElem) return;
     const numDocElem = document.getElementById("numDoc");
     
-    // Al cambiar el selector superior, actualizamos al siguiente número correlativo correspondiente
     if (tipoElem.value === "PRESUPUESTO") {
         numDocElem.value = formatearNumero("PRES", numPresupuesto);
     } else {
@@ -184,30 +182,77 @@ function cargarDocumentoDesdeHistorial() {
     }
 }
 
-// NUEVA FUNCIÓN: Subir archivo JSON externo para modificarlo
-function cargarDocumentoDesdeArchivoJSON(event) {
+// ==========================================================
+// CARGA UNIVERSAL (JSON / PDF) PARA MODIFICAR
+// ==========================================================
+function cargarDocumentoUniversal(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = JSON.parse(e.target.result);
-            // Si el archivo viene de una copia de seguridad general, intentamos buscar el historial o un objeto directo
-            if (data.historial && Array.isArray(data.historial) && data.historial.length > 0) {
-                cargarDatosDesdeObjeto(data.historial[data.historial.length - 1]);
-                alert("Copia cargada con éxito desde el backup.");
-            } else if (data.numDoc) {
-                cargarDatosDesdeObjeto(data);
-                alert(`Documento ${data.numDoc} cargado correctamente para su modificación.`);
-            } else {
-                alert("El archivo JSON no tiene un formato compatible de documento.");
+    if (file.name.endsWith('.json')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.historial && Array.isArray(data.historial) && data.historial.length > 0) {
+                    cargarDatosDesdeObjeto(data.historial[data.historial.length - 1]);
+                    alert("Copia cargada con éxito desde el backup.");
+                } else if (data.numDoc) {
+                    cargarDatosDesdeObjeto(data);
+                    alert(`Documento ${data.numDoc} cargado correctamente para su modificación.`);
+                } else {
+                    alert("El archivo JSON no tiene un formato compatible de documento.");
+                }
+            } catch (err) {
+                alert("Error al leer el archivo JSON.");
             }
-        } catch (err) {
-            alert("Error al leer el archivo JSON.");
+        };
+        reader.readAsText(file);
+    } else if (file.name.endsWith('.pdf')) {
+        leerTextoPDFYModificar(file);
+    } else {
+        alert("Por favor, selecciona un archivo válido con extensión .json o .pdf");
+    }
+}
+
+async function leerTextoPDFYModificar(file) {
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let textoCompleto = "";
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const textItems = textContent.items.map(item => item.str);
+            textoCompleto += textItems.join(" ") + "\n";
         }
-    };
-    reader.readAsText(file);
+
+        const matchNum = textoCompleto.match(/(PRES|FACT)-\d{4}-\d{3}/i);
+        if (matchNum) {
+            const numDetectado = matchNum[0].toUpperCase();
+            document.getElementById("numDoc").value = numDetectado;
+            if (numDetectado.startsWith("FACT")) {
+                document.getElementById("tipoDoc").value = "FACTURA";
+            } else {
+                document.getElementById("tipoDoc").value = "PRESUPUESTO";
+            }
+
+            const enHistorial = historialDocumentos.find(d => d.numDoc === numDetectado);
+            if (enHistorial) {
+                cargarDatosDesdeObjeto(enHistorial);
+                alert(`¡Documento ${numDetectado} encontrado en la memoria y cargado para modificar!`);
+                return;
+            }
+        }
+
+        alert("PDF leído correctamente. El número de documento se ha detectado, pero no estaba en la memoria local del navegador.");
+        actualizar();
+
+    } catch (error) {
+        console.error("Error al leer el PDF:", error);
+        alert("No se pudo leer el contenido del PDF.");
+    }
 }
 
 function cargarDatosDesdeObjeto(doc) {
@@ -312,7 +357,6 @@ function crearNuevoDocumentoCorrelativo() {
     if (!tipoElem) return;
     const tipo = tipoElem.value;
     
-    // Incrementamos el contador correspondiente de forma limpia para un documento NUEVO
     if (tipo === "PRESUPUESTO") {
         numPresupuesto++;
         localStorage.setItem("carrascosa_seq_pres", numPresupuesto);
