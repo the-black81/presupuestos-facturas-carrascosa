@@ -168,7 +168,7 @@
         <div id="itemsContainer"></div>
         <button class="btn" onclick="agregarItem()">+ Añadir Línea de Trabajo</button>
 
-        <h3>Opciones de Impuestos y Forma de Pago</h3>
+        <h3>Opciones de Impuestos y Visibilidad</h3>
         <div class="form-group">
             <label>IVA Aplicable</label>
             <select id="tipoIva" onchange="actualizar()">
@@ -176,20 +176,6 @@
                 <option value="21">IVA General (21%)</option>
                 <option value="0">Sin IVA (0%)</option>
             </select>
-        </div>
-
-        <!-- MODO DE FORMA DE PAGO -->
-        <div class="form-group" style="background: #f1f5f9; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 12px;">
-            <label style="font-weight: bold; color: #1b365d;">Modo de Forma de Pago</label>
-            <select id="modoFormaPago" onchange="actualizarModoFormaPago()">
-                <option value="AUTO">Estándar (50% Adelanto - 25% Obra - 25% Final)</option>
-                <option value="CUSTOM">Texto Personalizado / Otra Forma de Pago</option>
-            </select>
-
-            <div id="boxCustomPago" style="display: none; margin-top: 8px;">
-                <label>Texto Personalizado Forma de Pago:</label>
-                <textarea id="txtCustomPago" rows="3" placeholder="Ej: Pago al contado tras la entrega de llaves.&#10;o 100% mediante transferencia previa." oninput="actualizar()" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; font-size: 11px; resize: vertical;"></textarea>
-            </div>
         </div>
 
         <div class="form-group">
@@ -203,12 +189,7 @@
             <textarea id="txtObservaciones" rows="2" placeholder="Ej: Incluye desescombro. No incluye pintura final..." oninput="actualizar()" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; font-size: 12px; resize: vertical;"></textarea>
         </div>
 
-        <!-- CASILLAS DE VISIBILIDAD -->
-        <label class="checkbox-group">
-            <input type="checkbox" id="chkFormaPagoBloque" checked onchange="actualizar()">
-            Mostrar bloque entero de FORMA DE PAGO y Condiciones
-        </label>
-
+        <!-- CASILLA PARA MOSTRAR/OCULTAR OBSERVACIONES -->
         <label class="checkbox-group">
             <input type="checkbox" id="chkObservaciones" onchange="actualizar()">
             Mostrar recuadro de Observaciones en el documento
@@ -307,20 +288,11 @@
                     </div>
                 </div>
 
-                <!-- BLOQUE DE FORMA DE PAGO Y CONDICIONES (CONMUTABLE Y OCULTABLE) -->
-                <div class="conditions-box" id="boxFormaPagoCompleto">
+                <div class="conditions-box">
                     <strong style="color:#1b365d;">FORMA DE PAGO:</strong><br>
-                    
-                    <!-- MODO AUTOMÁTICO (50 / 25 / 25) -->
-                    <div id="boxPagoAuto">
-                        • Se abona el 50% (<span id="lblAdelanto">0,00 €</span>) para formalizar el pedido.<br>
-                        • Se realizará un 2º pago del 25% (<span id="lblPago2">0,00 €</span>) a mitad de obra.<br>
-                        • Pago final restante del 25% (<span id="lblPagoFinal">0,00 €</span>) a la finalización de los trabajos.<br>
-                    </div>
-
-                    <!-- MODO PERSONALIZADO -->
-                    <div id="boxPagoCustom" style="display:none; white-space: pre-wrap; margin: 3px 0;"></div>
-
+                    • Se abona el 50% (<span id="lblAdelanto">0,00 €</span>) para formalizar el pedido.<br>
+                    • Se realizará un 2º pago del 25% (<span id="lblPago2">0,00 €</span>) a mitad de obra.<br>
+                    • Pago final restante del 25% (<span id="lblPagoFinal">0,00 €</span>) a la finalización de los trabajos.<br>
                     • Validez del documento: <span id="lblValidezDoc">30 Días</span>.<br>
                     
                     <div class="bank-details" id="boxIbanDetails">
