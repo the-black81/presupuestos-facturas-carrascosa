@@ -148,6 +148,8 @@ function guardarEnHistorial(silencioso = false) {
         items: JSON.parse(JSON.stringify(items)),
         tipoIva: document.getElementById("tipoIva")?.value || "10",
         txtConceptoBancario: document.getElementById("txtConceptoBancario")?.value || "",
+        txtObservaciones: document.getElementById("txtObservaciones")?.value || "",
+        chkObservaciones: document.getElementById("chkObservaciones") ? document.getElementById("chkObservaciones").checked : false,
         chkPreciosConIva: document.getElementById("chkPreciosConIva") ? document.getElementById("chkPreciosConIva").checked : false,
         chkManoObra: document.getElementById("chkManoObra") ? document.getElementById("chkManoObra").checked : true,
         chkFormaPago: document.getElementById("chkFormaPago") ? document.getElementById("chkFormaPago").checked : true
@@ -272,6 +274,8 @@ function cargarDatosDesdeObjeto(doc) {
     
     if (document.getElementById("tipoIva")) document.getElementById("tipoIva").value = doc.tipoIva || "10";
     if (document.getElementById("txtConceptoBancario")) document.getElementById("txtConceptoBancario").value = doc.txtConceptoBancario || "";
+    if (document.getElementById("txtObservaciones")) document.getElementById("txtObservaciones").value = doc.txtObservaciones || "";
+    if (document.getElementById("chkObservaciones")) document.getElementById("chkObservaciones").checked = doc.chkObservaciones !== undefined ? doc.chkObservaciones : false;
     if (document.getElementById("chkPreciosConIva")) document.getElementById("chkPreciosConIva").checked = doc.chkPreciosConIva !== undefined ? doc.chkPreciosConIva : false;
     if (document.getElementById("chkManoObra")) document.getElementById("chkManoObra").checked = doc.chkManoObra !== undefined ? doc.chkManoObra : true;
     if (document.getElementById("chkFormaPago")) document.getElementById("chkFormaPago").checked = doc.chkFormaPago !== undefined ? doc.chkFormaPago : true;
@@ -381,6 +385,7 @@ function limpiarFormularioCompleto() {
     if (document.getElementById("cliNif")) document.getElementById("cliNif").value = "";
     if (document.getElementById("cliEmail")) document.getElementById("cliEmail").value = "";
     if (document.getElementById("txtProyecto")) document.getElementById("txtProyecto").value = "";
+    if (document.getElementById("txtObservaciones")) document.getElementById("txtObservaciones").value = "";
     items = [{ cant: "1", unid: "", desc: "", precio: 0.00 }];
     renderItems();
 }
@@ -608,6 +613,19 @@ function actualizar() {
     }
 
     setTxt("lblConceptoNota", getVal("txtConceptoBancario"));
+
+    // --- RECUADRO DE OBSERVACIONES ---
+    const txtObs = getVal("txtObservaciones").trim();
+    const boxObs = document.getElementById("boxObservaciones");
+    const chkObs = document.getElementById("chkObservaciones");
+    if (boxObs && chkObs) {
+        if (chkObs.checked && txtObs !== "") {
+            setTxt("lblObservaciones", txtObs);
+            boxObs.style.display = "block";
+        } else {
+            boxObs.style.display = "none";
+        }
+    }
 
     const boxManoObra = document.getElementById("boxManoObra");
     const chkManoObra = document.getElementById("chkManoObra");
