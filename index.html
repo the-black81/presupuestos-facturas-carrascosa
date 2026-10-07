@@ -183,6 +183,18 @@
             <input type="text" id="txtConceptoBancario" value="(Indicar dirección de la obra en el concepto de la transferencia)" oninput="actualizar()">
         </div>
 
+        <!-- CAMPO PARA TEXTO DE OBSERVACIONES -->
+        <div class="form-group">
+            <label>Observaciones / Notas Adicionales</label>
+            <textarea id="txtObservaciones" rows="2" placeholder="Ej: Incluye desescombro. No incluye pintura final..." oninput="actualizar()" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; font-size: 12px; resize: vertical;"></textarea>
+        </div>
+
+        <!-- CASILLA PARA MOSTRAR/OCULTAR OBSERVACIONES -->
+        <label class="checkbox-group">
+            <input type="checkbox" id="chkObservaciones" onchange="actualizar()">
+            Mostrar recuadro de Observaciones en el documento
+        </label>
+
         <label class="checkbox-group">
             <input type="checkbox" id="chkPreciosConIva" onchange="actualizar()">
             Mostrar precios unitarios con IVA incluido en la tabla
@@ -255,10 +267,20 @@
 
             <div class="footer-block">
                 <div class="totals-container">
-                    <div class="leyenda" id="boxManoObra">
-                        Mano de obra y desplazamiento incluido
+                    <!-- BLOQUE IZQUIERDO: OBSERVACIONES Y MANO DE OBRA -->
+                    <div style="flex: 1; margin-right: 15px;">
+                        <!-- RECUADRO DE OBSERVACIONES JUSTO ARRIBA DE MANO DE OBRA -->
+                        <div id="boxObservaciones" style="display: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; margin-bottom: 6px; font-size: 10px; color: #334155;">
+                            <strong style="color: #1b365d;">OBSERVACIONES:</strong>
+                            <div id="lblObservaciones" style="white-space: pre-wrap; margin-top: 2px;"></div>
+                        </div>
+
+                        <div class="leyenda" id="boxManoObra">
+                            Mano de obra y desplazamiento incluido
+                        </div>
                     </div>
 
+                    <!-- BLOQUE DERECHO: TOTALES -->
                     <div class="totals-box">
                         <div class="totals-row"><span>BASE IMPONIBLE:</span> <span id="lblBase">0,00 €</span></div>
                         <div class="totals-row"><span>IVA (<span id="lblPorcentajeIva">10</span>%):</span> <span id="lblCuotaIva">0,00 €</span></div>
