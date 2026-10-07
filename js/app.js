@@ -148,6 +148,7 @@ function guardarEnHistorial(silencioso = false) {
         items: JSON.parse(JSON.stringify(items)),
         tipoIva: document.getElementById("tipoIva")?.value || "10",
         txtConceptoBancario: document.getElementById("txtConceptoBancario")?.value || "",
+        chkPreciosConIva: document.getElementById("chkPreciosConIva") ? document.getElementById("chkPreciosConIva").checked : false,
         chkManoObra: document.getElementById("chkManoObra") ? document.getElementById("chkManoObra").checked : true,
         chkFormaPago: document.getElementById("chkFormaPago") ? document.getElementById("chkFormaPago").checked : true
     };
@@ -271,6 +272,7 @@ function cargarDatosDesdeObjeto(doc) {
     
     if (document.getElementById("tipoIva")) document.getElementById("tipoIva").value = doc.tipoIva || "10";
     if (document.getElementById("txtConceptoBancario")) document.getElementById("txtConceptoBancario").value = doc.txtConceptoBancario || "";
+    if (document.getElementById("chkPreciosConIva")) document.getElementById("chkPreciosConIva").checked = doc.chkPreciosConIva !== undefined ? doc.chkPreciosConIva : false;
     if (document.getElementById("chkManoObra")) document.getElementById("chkManoObra").checked = doc.chkManoObra !== undefined ? doc.chkManoObra : true;
     if (document.getElementById("chkFormaPago")) document.getElementById("chkFormaPago").checked = doc.chkFormaPago !== undefined ? doc.chkFormaPago : true;
 
@@ -625,6 +627,18 @@ function actualizar() {
         boxIbanDetails.style.display = chkFormaPago.checked ? "block" : "none";
     }
 
+    // --- LEER IVA Y CASILLA DE CON IVA ---
+    let pctIva = parseFloat(getVal("tipoIva")) || 0;
+    const factorIva = 1 + (pctIva / 100);
+    const chkPreciosConIva = document.getElementById("chkPreciosConIva");
+    const mostrarConIva = chkPreciosConIva ? chkPreciosConIva.checked : false;
+
+    // Actualizar título de cabecera de la tabla
+    const thPrecioUnitario = document.getElementById("thPrecioUnitario");
+    if (thPrecioUnitario) {
+        thPrecioUnitario.textContent = mostrarConIva ? "P. UNIT. (c/ IVA)" : "P. UNIT.";
+    }
+
     let tbody = document.getElementById("tablaBody");
     if (!tbody) return;
     tbody.innerHTML = "";
@@ -633,8 +647,12 @@ function actualizar() {
     items.forEach(item => {
         let cantStr = String(item.cant || "0").replace(',', '.');
         let cantNum = parseFloat(cantStr) || 0;
-        let totalFila = cantNum * (parseFloat(item.precio) || 0);
+        let precioBase = parseFloat(item.precio) || 0;
+        let totalFila = cantNum * precioBase;
         base += totalFila;
+
+        // Si la casilla está activa, multiplicamos el P. UNIT por el factor IVA
+        let precioAMostrar = mostrarConIva ? (precioBase * factorIva) : precioBase;
 
         let unidadTexto = item.unid ? ` ${item.unid}` : '';
 
@@ -642,13 +660,12 @@ function actualizar() {
             <tr>
                 <td>${item.cant}${unidadTexto}</td>
                 <td>${item.desc}</td>
-                <td style="text-align: right;">${(parseFloat(item.precio) || 0).toFixed(2).replace('.', ',')} €</td>
+                <td style="text-align: right;">${precioAMostrar.toFixed(2).replace('.', ',')} €</td>
                 <td style="text-align: right;">${totalFila.toFixed(2).replace('.', ',')} €</td>
             </tr>
         `;
     });
 
-    let pctIva = parseFloat(getVal("tipoIva")) || 0;
     let cuotaIva = base * (pctIva / 100);
     let totalGeneral = base + cuotaIva;
 
